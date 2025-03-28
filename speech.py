@@ -44,7 +44,7 @@ def record_live_audio():
 def transcribe_audio(audio_data):
     audio_array = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0
     # !important expects audio as a numpy array at the correct sample rate
-    transcription = asr_pipeline(audio_array, sampling_rate=RATE)["text"]
+    transcription = asr_pipeline(audio_array)["text"]
     return transcription
 
 # very naive way to parse commands, but works for now

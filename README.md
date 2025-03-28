@@ -14,7 +14,7 @@ pip install -r requirements.txt
 
 `webrtcdav` requires MSVC and C++ Build Tools. Installing them will require about 3 GB of system space. Get it with [Microsoft C++ Build Tools.](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 
-Spacey models must be installed using a Python command, not `pip`:
+Spacy models must be installed using a Python command, not `pip`:
 
 ```shell
 python -m spacy download en_core_web_sm
