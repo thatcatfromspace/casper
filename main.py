@@ -5,9 +5,13 @@ import torch
 import sounddevice as sd
 from datetime import datetime, timedelta
 import json
+import colorama
+from colorama import Fore, Style
+
+colorama.init()
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"Device: {device}")
+print(f"{Fore.GREEN}Device: {device}{Style.RESET_ALL}")
 
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
@@ -22,13 +26,13 @@ whisper = pipeline(
 
 bark_processor = BarkProcessor.from_pretrained("suno/bark-small")
 bark_model = BarkModel.from_pretrained("suno/bark-small").to(device)
-print(f"Bark model on: {next(bark_model.parameters()).device}")
+print(f"{Fore.GREEN}Bark model on: {next(bark_model.parameters()).device}{Style.RESET_ALL}")
 
 def record_audio():
     """Record audio until user stops (Enter key assumed via timeout here)."""
     p = pyaudio.PyAudio()
     stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
-    print("Recording... (Press Ctrl+C to stop or wait 5s)")
+    print(f"{Fore.BLUE}Recording... (Press Ctrl+C to stop or wait 5s){Style.RESET_ALL}")
     
     frames = []
     try:
@@ -38,7 +42,7 @@ def record_audio():
     except KeyboardInterrupt:
         pass
     
-    print("Recording stopped.")
+    print(f"{Fore.YELLOW}Recording stopped.{Style.RESET_ALL}")
     stream.stop_stream()
     stream.close()
     p.terminate()
@@ -86,15 +90,15 @@ def speak(text):
 try:
     audio = record_audio()
     text = transcribe(audio)
-    print(f"Heard: {text}")
+    print(f"{Fore.CYAN}Heard: {text}{Style.RESET_ALL}")
     
     action, subject, time = parse_command(text)
     if action == "schedule":
         response = schedule_event(subject, time)
-        print(response)
+        print(f"{Fore.GREEN}{response}{Style.RESET_ALL}")
         speak(response)
     else:
         speak("I only know how to schedule things right now!")
 except Exception as e:
-    print(f"Error: {e}")
+    print(f"{Fore.RED}Error: {e}{Style.RESET_ALL}")
     speak("Oops, something went wrong!")
