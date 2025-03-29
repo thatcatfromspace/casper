@@ -22,4 +22,14 @@ python -m spacy download en_core_web_sm
 
 Small versions of speech-to-word and TTS models have been used. These might still be a lot for your computer.
 
+GPU support is enabled using CUDA and is heavily recommended. `bark-small` itself is a large model that takes signifcant times to process speech.
+
+After installing CUDA from the official NVIDIA website, you will be prompted to download Visual C++ Build Tools (you can skip this if you followed this to install `webertcdav`) and then install the latest stable version of PyTorch that supports CUDA.
+
+
+```shell
+pip install torch --index-url https://download.pytorch.org/whl/cu121
+```
+
+
 
