@@ -9,28 +9,31 @@ import colorama
 from colorama import Fore, Style
 import threading
 import keyboard
+import streamlit as st
 
 colorama.init()
-
-device = "cuda" if torch.cuda.is_available() else "cpu"
-# print(f"{Fore.GREEN}Device: {device}{Style.RESET_ALL}")
 
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 16000  # Whisper expects 16kHz
 
-whisper = pipeline(
-    "automatic-speech-recognition",
-    model="openai/whisper-tiny",
-    generate_kwargs={"language": "<|en|>"},
-)
 
-bark_processor = BarkProcessor.from_pretrained("suno/bark-small")
-bark_model = BarkModel.from_pretrained("suno/bark-small").to(device)
-# print(
-#     f"{Fore.GREEN}Bark model on: {next(bark_model.parameters()).device}{Style.RESET_ALL}"
-# )
+@st.cache_resource(show_spinner=False)
+def get_whisper():
+    return pipeline(
+        "automatic-speech-recognition",
+        model="openai/whisper-tiny",
+        generate_kwargs={"language": "<|en|>"},
+    )
+
+
+@st.cache_resource(show_spinner=False)
+def get_bark():
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    bark_processor = BarkProcessor.from_pretrained("suno/bark-small")
+    bark_model = BarkModel.from_pretrained("suno/bark-small").to(device)
+    return bark_processor, bark_model, device
 
 
 def record_audio():
@@ -69,6 +72,7 @@ def record_audio():
 def transcribe(audio_data):
     """Convert audio to text with Whisper."""
     audio_array = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0
+    whisper = get_whisper()
     return whisper(audio_array)["text"]
 
 
@@ -117,9 +121,9 @@ def schedule_event(subject, time, filename="schedule.json"):
 
 def speak(text):
     """Generate and play speech with Bark on CUDA."""
+    bark_processor, bark_model, device = get_bark()
     inputs = bark_processor(text, voice_preset="v2/en_speaker_3")
     inputs = {key: value.to(device) for key, value in inputs.items()}
-
     # Ensure all tensors are on CUDA
     with torch.no_grad():
         audio = bark_model.generate(**inputs).cpu().numpy().squeeze()
